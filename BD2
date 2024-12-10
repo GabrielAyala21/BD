@@ -1,3 +1,4 @@
+-- 1. Seleccionar la base de datos "almacen" y mostrar las tablas existentes
 USE almacen;
 SHOW TABLES;
 
