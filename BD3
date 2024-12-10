@@ -1,0 +1,13 @@
+SELECT artista, titulo, genero FROM `lista` ORDER BY artista, titulo ASC; 
+
+SELECT artista, titulo, genero FROM `lista` ORDER BY artista ASC LIMIT 10; 
+
+SELECT artista, titulo, genero FROM `lista` ORDER BY artista ASC LIMIT 10,5; 
+
+SELECT * FROM `lista` WHERE artista = "Madonna"; 
+
+SELECT * FROM `lista` WHERE genero = "POP" ORDER by titulo ASC; 
+
+SELECT * FROM `lista` WHERE genero = "POP" AND año = 2015 ORDER by artista, titulo ASC; 
+
+SELECT * FROM `lista` WHERE genero = "Dance POP" AND año < 2011 ORDER by titulo ASC; 
