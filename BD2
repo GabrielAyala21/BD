@@ -1,0 +1,129 @@
+USE almacen;
+SHOW TABLES;
+
+-- 2. Verificar los registros de la tabla "clientes" y modificar campos a AUTO_INCREMENT si es necesario
+SELECT * FROM Clientes;
+ALTER TABLE Clientes MODIFY ClienteID INT AUTO_INCREMENT;
+ALTER TABLE Articulos MODIFY ArticuloID INT AUTO_INCREMENT;
+
+-- 3. Insertar registros en las tablas "clientes" y "artículos"
+-- Insertar registros en "clientes"
+INSERT INTO Clientes (Nombre, Apeliido, CUIT, Comentarios) VALUES 
+('Juan', 'Perez', '20345678901', 'Sin comentarios'),
+('Maria', 'Gomez', '27345678901', 'Sin comentarios'),
+('Luis', 'Alarcon', '20345678902', 'Cliente frecuente'),
+('Ana', 'Lopez', '27345678902', 'Comentarios varios'),
+('Jose', 'Martinez', '20345678903', 'Ninguno');
+
+-- Insertar registros en "artículos"
+INSERT INTO Articulos (Nombre, Precio, STOCK) VALUES 
+('Arroz', 50.00, 100),
+('Fideos', 40.00, 150),
+('Leche', 60.00, 80),
+('Azucar', 45.00, 120),
+('Aceite', 90.00, 70);
+
+-- Insertar registros en "facturas"
+INSERT INTO Facturas (letra, numero, ClienteID, ArticuloID, Monto, fecha) VALUES 
+('A', 1, 1, 1, 50.00, '2022-01-10'),
+('A', 2, 2, 2, 40.00, '2022-02-15'),
+('A', 3, 3, 3, 60.00, '2022-03-20'),
+('A', 4, 4, 4, 45.00, '2022-01-25'),
+('A', 5, 5, 5, 90.00, '2022-03-30');
+
+-- 4. Consultas
+-- a. Mostrar nombre, apeliido, CUIT de los clientes, nombre de los artículos y fecha de factura, ordenados por nombre de clientes
+SELECT c.Nombre, c.Apeliido, c.CUIT, a.Nombre AS Articulo, f.fecha 
+FROM Clientes c 
+INNER JOIN Facturas f ON c.ClienteID = f.ClienteID 
+INNER JOIN Articulos a ON f.ArticuloID = a.ArticuloID 
+ORDER BY c.Nombre;
+
+-- b. Igual que anterior, pero entre enero y marzo de 2022
+SELECT c.Nombre, c.Apeliido, c.CUIT, a.Nombre AS Articulo, f.fecha 
+FROM Clientes c 
+INNER JOIN Facturas f ON c.ClienteID = f.ClienteID 
+INNER JOIN Articulos a ON f.ArticuloID = a.ArticuloID 
+WHERE f.fecha BETWEEN '2022-01-01' AND '2022-03-31' 
+ORDER BY c.Nombre;
+
+-- c. Clientes que realizaron compras y los que no realizaron compras
+SELECT c.Nombre, c.Apeliido, c.CUIT, f.fecha, f.Monto 
+FROM Clientes c 
+LEFT JOIN Facturas f ON c.ClienteID = f.ClienteID;
+
+-- d. Solo los clientes que no realizaron compras
+SELECT c.Nombre, c.Apeliido, c.CUIT 
+FROM Clientes c 
+LEFT JOIN Facturas f ON c.ClienteID = f.ClienteID 
+WHERE f.ClienteID IS NULL;
+
+-- e. Clientes y artículos donde el monto de la factura es mayor o igual a 90
+SELECT c.Apeliido, c.Nombre, a.Nombre AS Articulo, f.fecha, f.Monto 
+FROM Clientes c 
+INNER JOIN Facturas f ON c.ClienteID = f.ClienteID 
+INNER JOIN Articulos a ON f.ArticuloID = a.ArticuloID 
+WHERE f.Monto >= 90;
+
+-- f. Facturas con montos máximos
+SELECT c.Apeliido, c.Nombre, a.Nombre AS Articulo, f.fecha, f.Monto 
+FROM Clientes c 
+INNER JOIN Facturas f ON c.ClienteID = f.ClienteID 
+INNER JOIN Articulos a ON f.ArticuloID = a.ArticuloID 
+WHERE f.Monto = (SELECT MAX(Monto) FROM Facturas);
+
+-- g. Clientes con apeliido "Alarcon"
+SELECT * FROM Clientes 
+WHERE Apeliido = 'Alarcon';
+
+-- h. Clientes que no tienen el apeliido "Alarcon"
+SELECT * FROM Clientes 
+WHERE Apeliido != 'Alarcon';
+
+-- i. Días desde la fecha de facturación hasta hoy
+SELECT c.Nombre, c.Apeliido, f.fecha, f.Monto, DATEDIFF(CURDATE(), f.fecha) AS Dias_Pasados 
+FROM Clientes c 
+INNER JOIN Facturas f ON c.ClienteID = f.ClienteID;
+
+-- j. Clientes con apeliido "Alarcon" y nombre "Maria"
+SELECT c.Apeliido, c.Nombre, c.Direccion 
+FROM Clientes c 
+WHERE c.Apeliido = 'Alarcon' AND c.Nombre = 'Maria';
+
+-- k. Clientes cuyos nombres comienzan con "J"
+SELECT c.Nombre 
+FROM Clientes c 
+WHERE c.Nombre LIKE 'J%';
+
+-- l. Apeliidos de clientes sin repetir
+SELECT DISTINCT c.Apeliido 
+FROM Clientes c;
+
+-- m. Productos comprados por clientes sin repetir
+SELECT DISTINCT a.Nombre AS Articulo, c.Apeliido, c.Nombre 
+FROM Facturas f 
+INNER JOIN Clientes c ON f.ClienteID = c.ClienteID 
+INNER JOIN Articulos a ON f.ArticuloID = a.ArticuloID;
+
+-- n. Clientes cuyo CUIT no termina en "3"
+SELECT * 
+FROM Clientes 
+WHERE CUIT NOT LIKE '%3';
+
+-- o. Nombre de los clientes y número de DNI del CUIT, ordenados en forma descendente
+SELECT c.Nombre, SUBSTRING(c.CUIT, 3, 8) AS DNI 
+FROM Clientes c 
+ORDER BY c.Nombre DESC;
+
+-- p. Suma de las compras realizadas por cada cliente
+SELECT c.Nombre, c.Apeliido, SUM(f.Monto) AS Total_Comprado 
+FROM Clientes c 
+INNER JOIN Facturas f ON c.ClienteID = f.ClienteID 
+GROUP BY c.ClienteID;
+
+-- q. Compras realizadas por el cliente con el DNI '28654987'
+SELECT c.Apeliido, c.Nombre, SUM(f.Monto) AS Monto_Total 
+FROM Clientes c 
+INNER JOIN Facturas f ON c.ClienteID = f.ClienteID 
+WHERE SUBSTRING(c.CUIT, 3, 8) = '28654987' 
+GROUP BY c.ClienteID;
